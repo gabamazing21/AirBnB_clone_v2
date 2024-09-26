@@ -107,3 +107,17 @@ class test_fileStorage(unittest.TestCase):
         from models.engine.file_storage import FileStorage
         print(type(storage))
         self.assertEqual(type(storage), FileStorage)
+
+    def test_update_object(self):
+        """Test updating an obect's attributes and saving"""
+        new = BaseModel()
+        new.name = "California"
+        new.my_number = 89
+        new.save()
+
+        storage.save()
+        storage.reload()
+
+        update_obj = storage.all[f'BaseModel.{new.id}']
+        self.assertEqual(update_obj.name, "California")
+        self.assertEqual(update_obj.my_number, 89)
