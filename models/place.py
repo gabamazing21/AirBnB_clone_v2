@@ -1,7 +1,8 @@
-from sqlalchemy import Column, String, Integer, Float, ForeignKey
+from sqlalchemy import Table, Column, String, Integer, Float, ForeignKey
 from sqlalchemy.orm import relationship
 from models.base_model import BaseModel, Base
 from models.review import Review
+from models.amenity import Amenity
 
 class Place(BaseModel, Base):
     """Place class to represent a place"""
@@ -19,9 +20,36 @@ class Place(BaseModel, Base):
     longitude = Column(Float, nullable=True)
 
     reviews = relationship("Review", backref="place", cascade="all, delete-orphan")
+    _amenities = relationship("Amenity", secondary="place_amenity", viewonly=False, backref="places")
 
     @property
     def get_reviews(self):
-        """Returns a list of Review instances with place_id equals to the current Place.id"""
         from models import storage
+        """Returns a list of Review instances with place_id equals to the current Place.id"""
         return [review for review in storage.all(Review).values() if review.place_id == self.id]
+    
+    @property
+    def amenities_list(self):
+        """ returns the list of Amenity instances based on 
+        the attribute amenity_ids that contains all Amenity.id linked to the Place """
+        return self._amenities
+
+    @amenities_list.setter
+    def amenities_list(self, obj):
+        """ 
+        Setter attribute amenities that handles 
+        append method for adding an Amenity.id
+
+        """
+        if isinstance(obj, Amenity):
+            self._amenities.append(obj)
+
+
+
+
+# Define the many-to-many association table
+place_amenity = Table(
+    'place_amenity', Base.metadata,
+    Column('place_id', String(60), ForeignKey('places.id', ondelete='CASCADE'), primary_key=True, nullable=False),
+    Column('amenity_id', String(60), ForeignKey('amenities.id', ondelete='CASCADE'), primary_key=True, nullable=False)
+)
