@@ -29,18 +29,16 @@ class DBStorage:
             Base.metadata.drop_all(self.__engine)
 
     def all(self, cls=None):
-        """Query all objects of a specific class or all objects"""
-        objects = {}
+        """Query all objects depending on the class name (cls).
+        If cls=None, query all types of objects."""
         if cls:
-            objs = self.__session.query(cls).all()
+            return {f"{cls.__name__}.{obj.id}": obj for obj in self.__session.query(cls).all()}
         else:
-            objs = self.__session.query(State).all() + self.__session.query(City).all()
+            obj_dict = {}
+            for model in [State, City]:  # Add other models as needed
+                obj_dict.update({f"{model.__name__}.{obj.id}": obj for obj in self.__session.query(model).all()})
+            return obj_dict
 
-        for obj in objs:
-            key = f"{obj.__class__.__name__}.{obj.id}"
-            objects[key] = obj
-
-        return objects
 
     def new(self, obj):
         """Add a new object to the session"""
