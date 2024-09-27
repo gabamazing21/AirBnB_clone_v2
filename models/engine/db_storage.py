@@ -1,11 +1,12 @@
 #!/usr/bin/python3
 """DBStorage class for AirBnB clone"""
+from models.city import City
+from models.state import State
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 from models.base_model import Base
-from models.city import City
-from models.state import State
+
 
 class DBStorage:
     """Database storage engine for MySQL"""
