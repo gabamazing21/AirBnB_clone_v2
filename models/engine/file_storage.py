@@ -46,6 +46,8 @@ class FileStorage:
                     self.all()[key] = eval(val['__class__'])(**val)
         except FileNotFoundError:
             pass
+        except json.JSONDecodeError:
+            pass
 
     def delete(self, obj=None):
         """Deletes obj from __objects if it's inside"""

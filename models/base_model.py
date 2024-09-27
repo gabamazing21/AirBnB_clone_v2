@@ -13,7 +13,7 @@ Base = declarative_base()
 class BaseModel:
     """A base class for all hbnb models"""
     # Common attributes for all models using SQLAlchemy
-    id = Column(String(60), primary_key=True, nullable=False, default=str(uuid.uuid4()))
+    id = Column(String(60), primary_key=True, nullable=False, default=lambda: str(uuid.uuid4()))
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     updated_at = Column(DateTime, nullable=False, default=datetime.utcnow)
 
@@ -42,8 +42,8 @@ class BaseModel:
         """Updates updated_at with current time when instance is changed"""
         from models import storage
         self.updated_at = datetime.now()
-        models.storage.new(self)
-        models.storage.save()
+        storage.new(self)
+        storage.save()
 
     def to_dict(self):
         """Returns a dictionary containing all keys/values of the instance, excluding _sa_instance_state"""
