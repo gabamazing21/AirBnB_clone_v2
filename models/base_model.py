@@ -8,8 +8,6 @@ import models
 
 Base = declarative_base()
 
-
-
 class BaseModel:
     """A base class for all hbnb models"""
     # Common attributes for all models using SQLAlchemy
@@ -36,12 +34,12 @@ class BaseModel:
     def __str__(self):
         """Returns a string representation of the instance"""
         cls = (str(type(self)).split('.')[-1]).split('\'')[0]
-        return '[{}] ({}) {}'.format(cls, self.id, self.__dict__)
+        return '[{}] ({}) {}'.format(cls, self.id, self.to_dict())
 
     def save(self):
         """Updates updated_at with current time when instance is changed"""
         from models import storage
-        self.updated_at = datetime.now()
+        self.updated_at = datetime.utcnow()  # Use utcnow() for consistency
         storage.new(self)
         storage.save()
 
@@ -54,10 +52,8 @@ class BaseModel:
             del obj_dict['_sa_instance_state']
 
         # Format dates to ISO format
-        if 'created_at' in obj_dict:
-            obj_dict['created_at'] = self.created_at.isoformat()
-        if 'updated_at' in obj_dict:
-            obj_dict['updated_at'] = self.updated_at.isoformat()
+        obj_dict['created_at'] = self.created_at.isoformat()
+        obj_dict['updated_at'] = self.updated_at.isoformat()
 
         # Add the class name to the dictionary
         obj_dict['__class__'] = self.__class__.__name__
