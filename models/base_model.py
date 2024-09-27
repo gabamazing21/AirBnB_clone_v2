@@ -46,14 +46,24 @@ class BaseModel:
         models.storage.save()
 
     def to_dict(self):
-        """Convert the object into a dictionary format"""
-        dictionary = self.__dict__.copy()
-        if "_sa_instance_state" in dictionary:
-            del dictionary["_sa_instance_state"]
-        dictionary["__class__"] = self.__class__.__name__
-        dictionary["created_at"] = self.created_at.isoformat()
-        dictionary["updated_at"] = self.updated_at.isoformat()
-        return dictionary
+        """Returns a dictionary containing all keys/values of the instance, excluding _sa_instance_state"""
+        obj_dict = self.__dict__.copy()
+
+        # Remove the SQLAlchemy internal attribute if it exists
+        if '_sa_instance_state' in obj_dict:
+            del obj_dict['_sa_instance_state']
+
+        # Format dates to ISO format
+        if 'created_at' in obj_dict:
+            obj_dict['created_at'] = self.created_at.isoformat()
+        if 'updated_at' in obj_dict:
+            obj_dict['updated_at'] = self.updated_at.isoformat()
+
+        # Add the class name to the dictionary
+        obj_dict['__class__'] = self.__class__.__name__
+
+        return obj_dict
+    
     def delete(self):
         """Deletes the current instance from storage"""
         models.storage.delete(self)

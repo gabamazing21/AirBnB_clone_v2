@@ -19,10 +19,15 @@ class HBNBCommand(cmd.Cmd):
     prompt = '(hbnb) ' if sys.__stdin__.isatty() else ''
 
     classes = {
-               'BaseModel': BaseModel, 'User': User, 'Place': Place,
-               'State': State, 'City': City, 'Amenity': Amenity,
-               'Review': Review
-              }
+        'BaseModel': BaseModel,
+        'User': User,
+        'Place': Place,
+        'State': State,  # Ensure this line is present
+        'City': City,
+        'Amenity': Amenity,
+        'Review': Review
+    }
+
     dot_cmds = ['all', 'count', 'show', 'destroy', 'update']
     types = {
              'number_rooms': int, 'number_bathrooms': int,
@@ -226,21 +231,15 @@ class HBNBCommand(cmd.Cmd):
 
     def do_all(self, args):
         """Shows all objects, or all objects of a class"""
-        if not args:
-            # If no specific class is given, show all objects
-            objects = storage.all()
-        else:
-            args = args.split(' ')[0]
+        if args:
             if args not in HBNBCommand.classes:
                 print("** class doesn't exist **")
                 return
-            # If a class is specified, show objects of that class
             objects = storage.all(HBNBCommand.classes[args])
-
-        print_list = []
-        for obj in objects.values():
-            print_list.append(str(obj))
-        print(print_list)
+        else:
+            objects = storage.all()
+        
+        print([obj.to_dict() for obj in objects.values()])
 
     def help_all(self):
         """ Help information for the all command """

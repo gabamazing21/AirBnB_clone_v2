@@ -54,7 +54,8 @@ class DBStorage:
             self.__session.delete(obj)
 
     def reload(self):
-        """Reloads the database session and tables"""
+        """Reload all tables in the database"""
+        # Ensure all models are imported before creating tables
         Base.metadata.create_all(self.__engine)
         session_factory = sessionmaker(bind=self.__engine, expire_on_commit=False)
         Session = scoped_session(session_factory)
