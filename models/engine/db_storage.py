@@ -1,62 +1,73 @@
 #!/usr/bin/python3
-"""DBStorage class for AirBnB clone"""
-from models.city import City
-from models.state import State
-import os
+"""
+Module for DBStorage class
+"""
+
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.orm import scoped_session, sessionmaker
 from models.base_model import Base
+from models.base_model import BaseModel
+from models.user import User
+from models.state import State
+from models.city import City
+from models.amenity import Amenity
+from models.place import Place
+from models.review import Review
+import os
 
 
 class DBStorage:
-    """Database storage engine for MySQL"""
-
+    """This class manages storage of hbnb models in database"""
     __engine = None
     __session = None
 
     def __init__(self):
-        """Initialize the engine and session"""
-        user = os.getenv('HBNB_MYSQL_USER')
-        pwd = os.getenv('HBNB_MYSQL_PWD')
-        host = os.getenv('HBNB_MYSQL_HOST')
-        db = os.getenv('HBNB_MYSQL_DB')
-        env = os.getenv('HBNB_ENV')
-
-        self.__engine = create_engine(f'mysql+mysqldb://{user}:{pwd}@{host}/{db}',
+        """Initializes the DBStorage engine"""
+        self.__engine = create_engine('mysql+mysqldb://{}:{}@{}/{}'.
+                                      format(os.getenv('HBNB_MYSQL_USER'),
+                                             os.getenv('HBNB_MYSQL_PWD'),
+                                             os.getenv('HBNB_MYSQL_HOST'),
+                                             os.getenv('HBNB_MYSQL_DB')),
                                       pool_pre_ping=True)
-
-        if env == 'test':
+        if os.getenv('HBNB_ENV') == 'test':
             Base.metadata.drop_all(self.__engine)
 
     def all(self, cls=None):
-        """Query all objects depending on the class name (cls).
-        If cls=None, query all types of objects."""
+        """Returns a dictionary of models currently in storage"""
+        result = {}
         if cls:
-            return {f"{cls.__name__}.{obj.id}": obj for obj in self.__session.query(cls).all()}
+            objs = self.__session.query(cls).all()
+            for obj in objs:
+                key = obj.__class__.__name__ + '.' + obj.id
+                result[key] = obj
         else:
-            obj_dict = {}
-            for model in [State, City]:  # Add other models as needed
-                obj_dict.update({f"{model.__name__}.{obj.id}": obj for obj in self.__session.query(model).all()})
-            return obj_dict
-
+            for cls in [State, City, User, Place, Review, Amenity]:
+                objs = self.__session.query(cls).all()
+                for obj in objs:
+                    key = obj.__class__.__name__ + '.' + obj.id
+                    result[key] = obj
+        return result
 
     def new(self, obj):
-        """Add a new object to the session"""
+        """Adds new object to storage session"""
         self.__session.add(obj)
 
     def save(self):
-        """Commit all changes to the database"""
+        """Commits the session"""
         self.__session.commit()
 
     def delete(self, obj=None):
-        """Delete an object from the session"""
+        """Deletes obj from session"""
         if obj:
             self.__session.delete(obj)
 
     def reload(self):
-        """Reload all tables in the database"""
-        # Ensure all models are imported before creating tables
+        """Reloads storage session from the database"""
         Base.metadata.create_all(self.__engine)
         session_factory = sessionmaker(bind=self.__engine, expire_on_commit=False)
         Session = scoped_session(session_factory)
         self.__session = Session()
+
+    def close(self):
+        """Call remove() method on the private session attribute"""
+        self.__session.remove()
