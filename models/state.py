@@ -1,8 +1,21 @@
 #!/usr/bin/python3
 """ State Module for HBNB project """
-from models.base_model import BaseModel
+from models.base_model import BaseModel, Base
+from sqlalchemy import Column, String
+from sqlalchemy.orm import relationship
+import models.city
 
 
 class State(BaseModel):
     """ State class """
-    name = ""
+    __tablename__ = 'states'
+    name = Column(String(128), nullable=False)
+    # Relationship with cities
+    cities = relationship("City", backref="state", cascade="all, delete-orphan")
+
+    @property
+    def cities(self):
+        """Getter for FileStorage relationship between State and City"""
+        if models.storage_type == 'file':
+            return [city for city in models.storage.all(City).values() if city.state_id == self.id]
+
